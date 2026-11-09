@@ -1,0 +1,275 @@
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-family: system-ui, sans-serif;
+  background: #1e2a38;
+  color: #fff;
+  overflow-x: hidden;
+}
+
+h1 { margin: 16px 0 12px; }
+
+.escena { perspective: 900px; }
+
+/* --ix / --iy (-1 a 1) los pone el JS con el mouse o el giro del celular */
+.tablero {
+  --ix: 0;
+  --iy: 0;
+  position: relative;
+  width: min(92vw, 70vh, 640px);
+  aspect-ratio: 1;
+  border: 4px solid #0d1520;
+  border-radius: 6px;
+  overflow: hidden; /* recorta el zoom de la cámara */
+  transform: rotateX(calc(var(--iy) * -5deg)) rotateY(calc(var(--ix) * 5deg));
+  box-shadow: calc(var(--ix) * -16px) calc(var(--iy) * -16px + 12px) 26px rgba(0, 0, 0, .5);
+  transition: transform .2s ease-out, box-shadow .2s ease-out;
+}
+
+.camara {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-origin: 0 0;
+  transition: transform .45s ease-in-out;
+}
+
+#casillas {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  width: 100%;
+  height: 100%;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.casilla {
+  padding: 3px;
+  font-size: clamp(9px, 1.8vmin, 14px);
+  font-weight: 700;
+  color: #333;
+  background: #fbe9b7;
+  animation: aparecer .35s ease-out backwards;
+}
+.casilla.oscura { background: #f4c96b; }
+.casilla.pregunta { position: relative; color: #fff; background: #3949ab; }
+.casilla.pregunta::after {
+  content: '?';
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: clamp(16px, 4vmin, 32px);
+}
+
+#dibujos {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+/* hueco de 2 (no 1) para que el extremo redondeado no deje un punto antes de dibujarse */
+.trazo { stroke-dasharray: 1 2; animation: dibujar .9s ease-out backwards; }
+.aparece { animation: desvanecer .4s ease-out backwards; }
+.boca { transform: scale(0); } /* se abre al tragarse una ficha */
+
+/* la sombra del peón se corre al lado contrario de la inclinación */
+.sombra { transform: translate(calc(var(--ix) * -1.3px), calc(var(--iy) * -1.3px)); transition: transform .2s ease-out; }
+.ficha.turno .peon {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: pulso .7s ease-in-out infinite alternate;
+}
+
+.panel {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin: 16px;
+}
+
+.dificultad { font-weight: 700; }
+.dificultad select {
+  margin-left: 6px;
+  padding: 6px 8px;
+  font: inherit;
+  border: none;
+  border-radius: 8px;
+}
+
+#turno { display: flex; align-items: center; gap: 8px; margin: 0; font-weight: 700; }
+#punto { width: 16px; height: 16px; border: 2px solid #fff; border-radius: 50%; }
+
+#dado {
+  width: 76px;
+  height: 76px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  background: #0d1520;
+  border: none;
+  border-radius: 14px;
+  perspective: 320px;
+  cursor: pointer;
+}
+#cubo {
+  --lado: 44px;
+  position: relative;
+  width: var(--lado);
+  height: var(--lado);
+  transform-style: preserve-3d;
+}
+.cara {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template: repeat(3, 1fr) / repeat(3, 1fr);
+  padding: 5px;
+  background: linear-gradient(135deg, #fff, #d9dde3);
+  border: 1px solid #b8bec8;
+  border-radius: 7px;
+  backface-visibility: hidden;
+}
+.cara .p { place-self: center; width: 8px; height: 8px; background: #1b1b1f; border-radius: 50%; }
+.c1 { transform: translateZ(calc(var(--lado) / 2)); }
+.c6 { transform: rotateY(180deg) translateZ(calc(var(--lado) / 2)); }
+.c2 { transform: rotateY(90deg) translateZ(calc(var(--lado) / 2)); }
+.c5 { transform: rotateY(-90deg) translateZ(calc(var(--lado) / 2)); }
+.c3 { transform: rotateX(90deg) translateZ(calc(var(--lado) / 2)); }
+.c4 { transform: rotateX(-90deg) translateZ(calc(var(--lado) / 2)); }
+#dado:hover:not(:disabled) { transform: translateY(-2px); }
+#dado:disabled { opacity: .5; cursor: default; }
+
+#estado { min-width: 16em; margin: 0; }
+
+.sala {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 0 16px 12px;
+}
+#enlace {
+  width: min(70vw, 340px);
+  padding: 7px 10px;
+  font: inherit;
+  border: none;
+  border-radius: 8px;
+}
+
+#reiniciar, #crear-sala, #copiar {
+  padding: 8px 16px;
+  font: inherit;
+  font-weight: 700;
+  color: #222;
+  background: #fdd835;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+/* Cada juego tiene su color: azul noche (P3), rojo (P5), dorado (Metaphor) */
+#quiz { --tema: #fdd835; --fondo: #13202e; }
+#quiz[data-juego="p3"] { --tema: #6fb6ff; --fondo: #0b1a3d; }
+#quiz[data-juego="p5"] { --tema: #ff5a4d; --fondo: #2a0a0d; }
+#quiz[data-juego="mr"] { --tema: #f2c94c; --fondo: #2b2208; }
+#quiz {
+  width: min(92vw, 480px);
+  padding: 20px;
+  color: #fff;
+  background: var(--fondo);
+  border: 3px solid var(--tema);
+  border-radius: 14px;
+  overflow: hidden;
+}
+/* esquina rayada en diagonal */
+#quiz::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 110px;
+  height: 110px;
+  background: repeating-linear-gradient(-45deg, var(--tema) 0 6px, transparent 6px 14px);
+  clip-path: polygon(100% 0, 0 0, 100% 100%);
+  opacity: .35;
+  pointer-events: none;
+}
+#quiz[open] { animation: entrar .45s .25s cubic-bezier(.2, .9, .3, 1) backwards; }
+/* franjas diagonales que barren la pantalla antes de que entre la tarjeta */
+#quiz::backdrop {
+  background: linear-gradient(115deg, transparent 44%, #fdd835 44% 49%, #fff 49% 50.5%, #fdd835 50.5% 56%, transparent 56%) 0 0 / 400% 100% no-repeat, rgba(0, 0, 0, .7);
+  animation: barrido .7s ease-in-out both;
+}
+#quiz[data-juego="p3"]::backdrop { background-image: linear-gradient(115deg, transparent 44%, #1b3a8a 44% 49%, #6fb6ff 49% 50.5%, #1b3a8a 50.5% 56%, transparent 56%); }
+#quiz[data-juego="p5"]::backdrop { background-image: linear-gradient(115deg, transparent 44%, #b3121f 44% 49%, #111 49% 50.5%, #b3121f 50.5% 56%, transparent 56%); }
+#quiz[data-juego="mr"]::backdrop { background-image: linear-gradient(115deg, transparent 44%, #8a6a12 44% 49%, #f2c94c 49% 50.5%, #8a6a12 50.5% 56%, transparent 56%); }
+#quiz-motivo { margin: 0; font-weight: 700; color: var(--tema); }
+#quiz-juego {
+  display: inline-block;
+  margin: 8px 0 0;
+  padding: 2px 10px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #111;
+  background: var(--tema);
+  border-radius: 999px;
+}
+#quiz-pregunta { margin: 12px 0 16px; font-size: 1.2rem; }
+.palabra { display: inline-block; }
+.letra { display: inline-block; animation: letra .25s calc(.55s + var(--i) * 16ms) ease-out backwards; }
+#quiz-opciones button:nth-child(n) { animation: letra .3s calc(.9s + var(--k, 0) * 90ms) ease-out backwards; }
+#quiz-opciones button:nth-child(2) { --k: 1; }
+#quiz-opciones button:nth-child(3) { --k: 2; }
+#quiz-opciones button:nth-child(4) { --k: 3; }
+#quiz-opciones { display: grid; gap: 8px; }
+#quiz-opciones button {
+  padding: 10px 12px;
+  font: inherit;
+  text-align: left;
+  color: #fff;
+  background: #24384d;
+  border: 2px solid #35506b;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background .15s, transform .15s;
+}
+#quiz-opciones button:hover:not(:disabled) { background: #2f4a66; transform: translateX(4px); }
+#quiz-opciones button:disabled { opacity: .55; cursor: default; }
+#quiz-opciones button.correcta { opacity: 1; background: #2e7d32; border-color: #66bb6a; animation: latido .4s; }
+#quiz-opciones button.incorrecta { opacity: 1; background: #c62828; border-color: #ef5350; animation: temblor .35s; }
+#quiz-resultado { min-height: 1.4em; margin: 12px 0 0; font-weight: 700; }
+
+#crear-sala:disabled { opacity: .5; cursor: default; }
+
+.confeti {
+  position: fixed;
+  top: -14px;
+  width: 8px;
+  height: 14px;
+  pointer-events: none;
+  z-index: 10;
+}
+
+@keyframes aparecer { from { opacity: 0; transform: scale(.4); } }
+@keyframes dibujar { from { stroke-dashoffset: 1; } }
+@keyframes desvanecer { from { opacity: 0; } }
+@keyframes pulso { to { transform: scale(1.2); } }
+@keyframes entrar { from { opacity: 0; transform: translateX(-70px) skewX(-10deg); } }
+@keyframes barrido { from { background-position: 0 0, 0 0; } to { background-position: 100% 0, 0 0; } }
+@keyframes letra { from { opacity: 0; transform: translateY(.5em) rotate(8deg); } }
+@keyframes latido { 50% { transform: scale(1.05); } }
+@keyframes temblor { 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; }
+}

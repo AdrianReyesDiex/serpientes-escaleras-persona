@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Serpientes y Escaleras</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1>Serpientes y Escaleras</h1>
+  <div class="sala">
+    <button id="crear-sala">Crear sala online</button>
+    <span id="sala-info" aria-live="polite"></span>
+    <input id="enlace" readonly hidden aria-label="Enlace de la sala">
+    <button id="copiar" hidden>Copiar</button>
+  </div>
+  <div class="escena">
+    <div class="tablero" role="img" aria-label="Tablero de serpientes y escaleras de 100 casillas">
+      <div class="camara">
+        <div id="casillas"></div>
+        <svg id="dibujos" viewBox="0 0 100 100" aria-hidden="true"></svg>
+      </div>
+    </div>
+  </div>
+  <div class="panel">
+    <label class="dificultad">Dificultad
+      <select id="dificultad">
+        <option value="normal">Normal</option>
+        <option value="dificil">Difícil</option>
+        <option value="desquiciado">Desquiciado</option>
+      </select>
+    </label>
+    <p id="turno"><span id="punto"></span><span id="turno-nombre"></span></p>
+    <button id="dado" aria-label="Tirar el dado"><span id="cubo"></span></button>
+    <p id="estado" aria-live="polite"></p>
+    <button id="reiniciar" hidden>Jugar de nuevo</button>
+  </div>
+  <dialog id="quiz" aria-labelledby="quiz-pregunta">
+    <p id="quiz-motivo"></p>
+    <p id="quiz-juego"></p>
+    <h2 id="quiz-pregunta"></h2>
+    <div id="quiz-opciones"></div>
+    <p id="quiz-resultado" aria-live="polite"></p>
+  </dialog>
+  <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
+  <script src="preguntas.js"></script>
+  <script src="main.js"></script>
+</body>
+</html>
